@@ -7,12 +7,13 @@ Goal: Allow Jellyfin container (running inside a VM) to use an Nvidia GPU for tr
 - GPU: Nvidia Quadro P400
 
 ## Proxmox
-Upload debian 12 ISO
-enable IOMMU
-Blacklist modules so host does not use GPU
-Create VM
-Disable SecureBoot
-Passthrough PCI GPU
+* Upload debian 12 ISO  
+* enable IOMMU
+* Blacklist modules so host does not use GPU
+* Create VM
+* Disable SecureBoot
+* Passthrough PCI GPU
+* Check if VM detects GPU
 
 ## Inside the VM
 
@@ -101,6 +102,9 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
 ```
+Bring that up with ```docker compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096  ```
+Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.  
+That's it done!
 
 ## Testing
 
