@@ -39,9 +39,10 @@ Following https://wiki.debian.org/NvidiaGraphicsDrivers for the next steps.
 
 2. Make sure these repositories are present in /etc/apt/sources.list
 
-```deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware```
-
-```deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware```   
+```
+deb http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-firmware
+```   
 
 3. Now install the nvidia driver from those repos
 
@@ -57,7 +58,7 @@ Following https://wiki.debian.org/NvidiaGraphicsDrivers for the next steps.
 
 ```sudo apt install nvtop nvidia-detect ```
 
-Really at this point if you didn't care about running Jellyfin in a container, you could install Jellyfin via the system packages and use the options in the WebGUI to enable transcoding.
+Really at this point if you didn't care about running Jellyfin in a container, you could install Jellyfin via the system packages and use the options in the WebGUI to enable transcoding on the GPU.
 
 #### Docker
 Install Install nvidia-docker2 and the Nvidia container toolkit  
