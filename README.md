@@ -102,7 +102,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
 ```
-Bring that up with ```docker compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096  ```
+Bring that up with ```docker compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096```  
 Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.  
 That's it done!
 
