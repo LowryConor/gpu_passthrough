@@ -11,8 +11,8 @@ Goal: Allow Jellyfin container (running inside a VM) to use an Nvidia GPU for tr
 * enable IOMMU
 * Blacklist modules so host does not use GPU
 * Create VM
-* Disable SecureBoot
-* Passthrough PCI GPU
+* Disable SecureBoot (F2 -> Device Manager -> Secure Boot Configuration)
+* Passthrough PCI GPU (Hardware -> Add PCI Device)
 * Check if VM detects GPU
 
 ## Inside the VM
@@ -22,7 +22,7 @@ Goal: Allow Jellyfin container (running inside a VM) to use an Nvidia GPU for tr
 ```apt install htop curl wget vim rsync sudo```
 
 2. Add account to sudoers  
-```usermod -A -G wheel conor```
+```usermod -aG sudo conor```
 
 3. From Workstation, add your SSH keys  
 ```ssh-copy-id conor@<VM-IP-ADDRESS>```
@@ -54,10 +54,51 @@ deb-src http://deb.debian.org/debian/ bookworm main contrib non-free non-free-fi
 ```sudo systemctl reboot```
 
 5. Once the VM is back up, check if the nvidia driver is loaded with ```modinfo nvidia-current```. You should see:
+   ```
+   conor@gputest2:~$ sudo modinfo nvidia-current | head -15
+   filename:       /lib/modules/6.1.0-10-amd64/updates/dkms/nvidia-current.ko
+   firmware:       nvidia/525.125.06/gsp_tu10x.bin
+   firmware:       nvidia/525.125.06/gsp_ad10x.bin
+   alias:          char-major-195-*
+   version:        525.125.06
+   supported:      external
+   license:        NVIDIA
+   srcversion:     B91689BE2C82F40FE520B73
+   alias:          pci:v000010DEd*sv*sd*bc06sc80i00*
+   alias:          pci:v000010DEd*sv*sd*bc03sc02i00*
+   alias:          pci:v000010DEd*sv*sd*bc03sc00i00*
+   depends:        drm
+   retpoline:      Y
+   name:           nvidia
+   vermagic:       6.1.0-10-amd64 SMP preempt mod_unload modversions
+   ```
 
-6. Install some more useful packages
+7. Install some more useful packages
 
 ```sudo apt install nvtop nvidia-detect ```
+```
+conor@gputest2:~$ nvidia-smi
+Sun Aug  6 21:30:43 2023
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.0     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Quadro P400         On   | 00000000:01:00.0 Off |                  N/A |
+| 34%   44C    P8    N/A /  30W |      1MiB /  2048MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+```
 
 Really at this point if you didn't care about running Jellyfin in a container, you could install Jellyfin via the system packages and use the options in the WebGUI to enable transcoding on the GPU.
 
