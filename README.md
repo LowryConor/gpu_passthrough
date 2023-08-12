@@ -151,6 +151,14 @@ That's it done!
 
 TODO: nvtop and htop screenshots here from playback with transcoding on/off
 
+## Troubleshooting
+```
+conor@gputest2:~$ nvidia-smi
+NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA driver
+```
+
+Make sure you definitely disabled SecureBoot on the VM as above.
+
 ## References
 1. https://wiki.debian.org/NvidiaGraphicsDrivers
 2. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
