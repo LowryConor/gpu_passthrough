@@ -2,29 +2,34 @@
 Notes on setting up GPU passthrough on Proxmox. 
 
 Goal: Allow Jellyfin container (running inside a VM) to use an Nvidia GPU for transcoding video
-- Host: Optiplex 9020 running Proxmox 7.4-3
-- VM: Debian 12
+- Host: Optiplex 9020 SFF running Proxmox 8.0.2
+- VM: Debian 12 Bookworm
 - GPU: Nvidia Quadro P400
 
-## Proxmox
-* Upload debian 12 ISO  
-* enable IOMMU
-* Blacklist modules so host does not use GPU
+## In Proxmox
+* Upload debian 12 ISO to Proxmox
+* enable IOMMU on host
+* Blacklist modules so host does not use GPU or set in BIOS
 * Create VM
 * Disable SecureBoot (F2 -> Device Manager -> Secure Boot Configuration)
 * Passthrough PCI GPU (Hardware -> Add PCI Device)
-* Check if VM detects GPU
 
 ## Inside the VM
 
 ### Initial Steps
-1. Install some useful packages  
+
+1. Check if VM even detects the GPU first. If not, check back over the previous steps.
+```
+conor@media:~$ lspci | grep -i p400
+01:00.0 VGA compatible controller: NVIDIA Corporation GP107GL [Quadro P400] (rev a1)
+```
+3. Install some useful packages  
 ```apt install htop curl wget vim rsync sudo```
 
-2. Add account to sudoers  
+4. Add account to sudoers  
 ```usermod -aG sudo conor```
 
-3. From Workstation, add your SSH keys  
+5. From Workstation, add your SSH keys  
 ```ssh-copy-id conor@<VM-IP-ADDRESS>```
 
 At this point, best to take a VM snapshot in Proxmox to easily rollback before we start installing any Nvidia stuff.  
@@ -103,6 +108,11 @@ Sun Aug  6 21:30:43 2023
 Really at this point if you didn't care about running Jellyfin in a container, you could install Jellyfin via the system packages and use the options in the WebGUI to enable transcoding on the GPU.
 
 #### Docker
+
+Install docker and docker-compose
+```
+sudo apt install docker docker-compose -y
+```
 Install Install nvidia-docker2 and the Nvidia container toolkit  
 From https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html  
 At time of writing, the method on that page doesn't support Debian 12.  
