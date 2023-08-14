@@ -121,7 +121,7 @@ apt update
 apt install install nvidia-container-toolkit
 systemctl restart docker
 ```
-3. Install nvidia-docker2
+3. Install nvidia-docker2. You need this to be able to pass the 'runtime: nvidia' environment variable to Docker
 ```
 sudo apt install nvidia-docker2
 ```
@@ -198,7 +198,7 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
 ```
-Bring that up with ```docker compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096```  
+Bring that up with ```docker-compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096```  
 Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.  
 That's it done!
 
@@ -219,3 +219,4 @@ Make sure you definitely disabled SecureBoot on the VM as above.
 2. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 3. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
 4. https://www.server-world.info/en/note?os=Debian_12&p=nvidia&f=2
+5. https://github.com/NVIDIA/nvidia-docker/issues/1268#issuecomment-632692949
