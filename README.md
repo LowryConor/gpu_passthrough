@@ -9,9 +9,12 @@ Goal: Allow Jellyfin container (running inside a Virtual Machine) to use an Nvid
 ## In Proxmox
 * enable IOMMU on host
 * Blacklist modules so host does not use GPU or set in BIOS
-* Create VM
+* Create VM. Just make sure you select 'q35' for Machine Type and 'OVMF(UEFI)' for BIOS
+  ![alt text](gpu_vmconfig.png?raw=true)
 * Passthrough PCI GPU (Hardware -> Add PCI Device)
+  ![alt text](gpu_pci_device.png?raw=true)
 * Start VM, enter BIOS and Disable SecureBoot (F2 -> Device Manager -> Secure Boot Configuration)
+  ![alt text](gpu_secureboot.png?raw=true)
 * Go through and complete the Debian installation. Nothing special required here.
 
 ## Inside the VM
@@ -20,7 +23,7 @@ Goal: Allow Jellyfin container (running inside a Virtual Machine) to use an Nvid
 
 1. Check if VM even detects the GPU is attached first. If not, look back over the previous steps.
 ```
-conor@media:~$ lspci | grep -i p400
+root@media:~$ lspci | grep -i p400
 01:00.0 VGA compatible controller: NVIDIA Corporation GP107GL [Quadro P400] (rev a1)
 ```
 2. Install some useful packages  
