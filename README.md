@@ -1,35 +1,35 @@
 # gpu_passthrough
 Notes on setting up GPU passthrough on Proxmox. 
 
-Goal: Allow Jellyfin container (running inside a VM) to use an Nvidia GPU for transcoding video
+Goal: Allow Jellyfin container (running inside a Virtual Machine) to use an Nvidia GPU for transcoding video
 - Host: Optiplex 9020 SFF running Proxmox 8.0.2
 - VM: Debian 12 Bookworm
 - GPU: Nvidia Quadro P400
 
 ## In Proxmox
-* Upload debian 12 ISO to Proxmox
 * enable IOMMU on host
 * Blacklist modules so host does not use GPU or set in BIOS
 * Create VM
-* Disable SecureBoot (F2 -> Device Manager -> Secure Boot Configuration)
 * Passthrough PCI GPU (Hardware -> Add PCI Device)
+* Start VM, enter BIOS and Disable SecureBoot (F2 -> Device Manager -> Secure Boot Configuration)
+* Go through and complete the Debian installation. Nothing special required here.
 
 ## Inside the VM
 
 ### Initial Steps
 
-1. Check if VM even detects the GPU first. If not, check back over the previous steps.
+1. Check if VM even detects the GPU is attached first. If not, look back over the previous steps.
 ```
 conor@media:~$ lspci | grep -i p400
 01:00.0 VGA compatible controller: NVIDIA Corporation GP107GL [Quadro P400] (rev a1)
 ```
-3. Install some useful packages  
+2. Install some useful packages  
 ```apt install htop curl wget vim rsync sudo```
 
-4. Add account to sudoers  
+3. Add account to sudoers  
 ```usermod -aG sudo conor```
 
-5. From Workstation, add your SSH keys  
+4. From Workstation, add your SSH keys  
 ```ssh-copy-id conor@<VM-IP-ADDRESS>```
 
 At this point, best to take a VM snapshot in Proxmox to easily rollback before we start installing any Nvidia stuff.  
@@ -37,7 +37,6 @@ TODO: Screenshot
 Once that's done you can jump off the Proxmox console and just SSH to the VM from your workstation.
 
 ### Install Nvidia drivers
-Following https://wiki.debian.org/NvidiaGraphicsDrivers for the next steps.
 
 1. Install kernel headers
 
@@ -109,25 +108,70 @@ Really at this point if you didn't care about running Jellyfin in a container, y
 
 #### Docker
 
-Install docker and docker-compose
+1. Install docker and docker-compose
 ```
 sudo apt install docker docker-compose -y
 ```
-Install Install nvidia-docker2 and the Nvidia container toolkit  
-From https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html  
-At time of writing, the method on that page doesn't support Debian 12.  
-So just use https://www.server-world.info/en/note?os=Debian_12&p=nvidia&f=2
+2. Install the Nvidia container toolkit. This will allow for GPU support in Docker.
+```
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey > /etc/apt/keyrings/nvidia-docker.key
+curl -s -L https://nvidia.github.io/nvidia-docker/debian11/nvidia-docker.list > /etc/apt/sources.list.d/nvidia-docker.list
+sed -i -e "s/^deb/deb \[signed-by=\/etc\/apt\/keyrings\/nvidia-docker.key\]/g" /etc/apt/sources.list.d/nvidia-docker.list
+apt update
+apt install install nvidia-container-toolkit
+systemctl restart docker
+```
+3. Install nvidia-docker2
+```
+sudo apt install nvidia-docker2
+```
 
 Before we look at Jellyfin. Test if you can pass the GPU through to a container via  
 ```docker run --gpus all nvidia/cuda:12.1.1-runtime-ubuntu22.04 nvidia-smi```  
 This is going to spin up a container using the base cuda image and run nvidia-smi. You should see this:
+```
+conor@media:~$ sudo docker run --gpus all nvidia/cuda:12.1.1-runtime-ubuntu22.04 nvidia-smi
 
-Congrats if that's working
+==========
+== CUDA ==
+==========
+
+CUDA Version 12.1.1
+
+Container image Copyright (c) 2016-2023, NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+
+This container image and its contents are governed by the NVIDIA Deep Learning Container License.
+By pulling and using the container, you accept the terms and conditions of this license:
+https://developer.nvidia.com/ngc/nvidia-deep-learning-container-license
+
+A copy of this license is made available in this container at /NGC-DL-CONTAINER-LICENSE for your convenience.
+
+Mon Aug 14 16:49:33 2023
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 525.125.06   Driver Version: 525.125.06   CUDA Version: 12.1     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Quadro P400         On   | 00000000:01:00.0 Off |                  N/A |
+| 34%   38C    P8    N/A /  30W |      1MiB /  2048MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+```
 
 #### Jellyfin
-I used the image from lscr.io rather than the offical Jellyfin image.  
+I used the image from lscr.io
 
-My docker compose file looks like this:
+My docker compose file looks like this: (should really use a volume for the configs but whatever)
 ```
 ---
 version: "2.1"
@@ -136,13 +180,14 @@ services:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     environment:
-      - PUID=911
-      - PGID=110
+      - PUID=1000
+      - PGID=1000
       - TZ=Etc/UTC
-      - JELLYFIN_PublishedServerUrl=192.168.0.110 #optional
+      - JELLYFIN_PublishedServerUrl=192.168.0.223 #optional
     volumes:
-      - /opt/jellyfin:/config
-      - /opt/media:/data/movies
+      - /opt/docker/configs/jellyfin:/config
+      - /mnt/media:/media
+      - /mnt/media_2:/media_2
     ports:
       - 8096:8096
       - 8920:8920 #optional
@@ -172,3 +217,5 @@ Make sure you definitely disabled SecureBoot on the VM as above.
 ## References
 1. https://wiki.debian.org/NvidiaGraphicsDrivers
 2. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+3. https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html
+4. https://www.server-world.info/en/note?os=Debian_12&p=nvidia&f=2
