@@ -35,8 +35,6 @@ root@media:~$ lspci | grep -i p400
 4. From Workstation, add your SSH keys  
 ```ssh-copy-id conor@<VM-IP-ADDRESS>```
 
-At this point, best to take a VM snapshot in Proxmox to easily rollback before we start installing any Nvidia stuff.  
-TODO: Screenshot  
 Once that's done you can jump off the Proxmox console and just SSH to the VM from your workstation.
 
 ### Install Nvidia drivers
@@ -202,12 +200,18 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
 ```
 Bring that up with ```docker-compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096```  
-Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.  
+Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.
+![alt text](gpu_jellyfin.png?raw=true)
 That's it done!
 
 ## Testing
 
-TODO: nvtop and htop screenshots here from playback with transcoding on/off
+Here is the VM playing a ~20GB 4K HEVC video file. CPUs are pinned to 100% (and it's loud!)
+ ![alt text](jellyfin_no_gpu.png?raw=true)
+
+After enabling Hardware Acceleration, the CPUs are much less stressed and the GPU is handling the video transcoding.
+ ![alt text](jellyfin_with_gpu.png?raw=true)
+ 
 
 ## Troubleshooting
 ```
