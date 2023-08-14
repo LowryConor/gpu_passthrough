@@ -1,7 +1,7 @@
 # gpu_passthrough
 Notes on setting up GPU passthrough on Proxmox. 
 
-Goal: Allow Jellyfin container (running inside a Virtual Machine) to use an Nvidia GPU for transcoding video
+Goal: Allow Jellyfin container (running inside a Virtual Machine) to use an Nvidia GPU for transcoding video. 
 - Host: Optiplex 9020 SFF running Proxmox 8.0.2
 - VM: Debian 12 Bookworm
 - GPU: Nvidia Quadro P400
@@ -200,7 +200,7 @@ services:
       - NVIDIA_VISIBLE_DEVICES=all
 ```
 Bring that up with ```docker-compose up``` and check if you are able to access the WebGUI at ```http://<VM-IP-ADDRESS>:8096```  
-Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Transcoding.
+Once in Jellyfin, navigate to Dashboard -> Playback -> Enable Hardware Acceleration.
 ![alt text](gpu_jellyfin.png?raw=true)
 That's it done!
 
