@@ -107,7 +107,7 @@ Sun Aug  6 21:30:43 2023
 
 Really at this point if you didn't care about running Jellyfin in a container, you could install Jellyfin via the system packages and use the options in the WebGUI to enable transcoding on the GPU.
 
-#### Docker
+### Docker
 
 1. Install docker and docker-compose
 ```
